@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect, memo, useCallback } from "react";
 import type { Components } from "react-markdown";
-import { Send } from "lucide-react";
+import { Brain, Send } from "lucide-react";
 import debounce from "lodash.debounce";
 import ReactMarkdown from "react-markdown";
 
@@ -13,130 +13,67 @@ type Message = {
   timestamp: Date;
 };
 
-const YouTubeEmbed = memo(function YouTubeEmbed({
-  href,
-  children,
-}: {
-  href: string;
-  children: React.ReactNode;
-}) {
-  let videoId = "";
-  if (href.includes("v=")) {
-    videoId = href.split("v=")[1].split("&")[0];
-  } else if (href.includes("youtu.be")) {
-    videoId = href.split("youtu.be/")[1].split("?")[0];
-  }
-
-  if (!videoId) return null;
-
-  return (
-    <div className="video-embed my-6">
-      <div className="aspect-w-16 aspect-h-9">
-        <iframe
-          src={`https://www.youtube.com/embed/${videoId}?enablejsapi=1`}
-          className="w-full h-[400px] rounded-lg"
-          allowFullScreen
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          key={`yt-embed-${videoId}`}
-          title={`YouTube video ${videoId}`}
-          frameBorder="0"
-        />
-      </div>
-      {children && <p className="text-center text-sm mt-2">{children}</p>}
-    </div>
-  );
-});
-
 const MessageComponent = () => {
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [sessionId, setSessionId] = useState("");
 
   const markdownComponents: Components = React.useMemo(() => {
     return {
-      a: ({ href, children, ...props }) => {
-        if (
-          href &&
-          (href.includes("youtube.com/watch") || href.includes("youtu.be"))
-        ) {
-          return <YouTubeEmbed href={href}>{children}</YouTubeEmbed>;
-        }
-
-        if (href && /\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(href)) {
-          return (
-            <div className="image-container my-6">
-              <img
-                src={href}
-                alt={typeof children === "string" ? children : ""}
-                className="max-w-[50%] h-auto rounded-lg mx-auto transition-transform duration-300 transform hover:scale-105 cursor-pointer"
-                onClick={() => setFullscreenImage(href)}
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = "/fallback-image.jpg";
-                }}
-              />
-            </div>
-          );
-        }
-
-        return (
-          <a
-            href={href}
-            className="text-blue-600 hover:underline"
-            target="_blank"
-            rel="noopener noreferrer"
-            {...props}
-          >
-            {children}
-          </a>
-        );
-      },
-
-      img: ({ src, alt, ...props }) => (
-        <div className="my-4">
-          <img
-            src={src}
-            alt={alt || ""}
-            className="max-w-full h-auto rounded-lg mx-auto transition-transform duration-300 transform hover:scale-105 cursor-pointer"
-            onClick={() => setFullscreenImage(String(src || ""))}
-            onError={(e) => {
-              (e.target as HTMLImageElement).src = "/fallback-image.jpg";
-            }}
-            {...props}
-          />
-          {alt && <p className="text-center text-sm mt-2">{alt}</p>}
-        </div>
+      a: ({ href, children, ...props }) => (
+        <a
+          href={href}
+          className="text-blue-400 hover:text-blue-300 hover:underline"
+          target="_blank"
+          rel="noopener noreferrer"
+          {...props}
+        >
+          {children}
+        </a>
       ),
-
-      h1: (props) => <h1 className="text-3xl font-bold my-0" {...props} />,
-      h2: (props) => <h2 className="text-2xl font-bold my-0" {...props} />,
-      h3: (props) => <h3 className="text-xl font-bold my-0" {...props} />,
-
+      h1: (props) => (
+        <h1 className="text-3xl font-bold my-2 text-white" {...props} />
+      ),
+      h2: (props) => (
+        <h2 className="text-2xl font-bold my-2 text-white" {...props} />
+      ),
+      h3: (props) => (
+        <h3 className="text-xl font-bold my-2 text-white" {...props} />
+      ),
       pre: (props) => (
         <pre
-          className="bg-gray-100 p-0 rounded-lg my-1 overflow-x-auto text-sm"
+          className="bg-gray-800 p-4 rounded-lg my-3 overflow-x-auto text-sm text-gray-100"
           {...props}
         />
       ),
       code: (props) => (
         <code
-          className="bg-gray-100 rounded px-2 py-1 font-mono text-sm"
+          className="bg-gray-800 rounded px-2 py-1 font-mono text-sm text-gray-100"
           {...props}
         />
       ),
-
-      strong: (props) => <strong className="font-semibold" {...props} />,
+      strong: (props) => (
+        <strong className="font-semibold text-white" {...props} />
+      ),
       em: (props) => <em className="italic" {...props} />,
       blockquote: (props) => (
         <blockquote
-          className="border-l-4 border-gray-300 pl-4 italic my-4 text-gray-600"
+          className="border-l-4 border-gray-500 pl-4 italic my-4 text-gray-300"
           {...props}
         />
       ),
-      hr: (props) => <hr className="my-6 border-gray-200" {...props} />,
+      hr: (props) => <hr className="my-6 border-gray-700" {...props} />,
+      p: (props) => <p className="my-2 text-gray-100" {...props} />,
+      ul: (props) => (
+        <ul className="list-disc pl-5 my-2 text-gray-100" {...props} />
+      ),
+      ol: (props) => (
+        <ol className="list-decimal pl-5 my-2 text-gray-100" {...props} />
+      ),
+      li: (props) => <li className="my-1" {...props} />,
     };
   }, []);
 
@@ -149,13 +86,15 @@ const MessageComponent = () => {
     function ChatMessage({ message }: { message: Message }) {
       return (
         <div
-          className={`flex ${message.isUser ? "justify-end" : "justify-start"}`}
+          className={`flex ${
+            message.isUser ? "justify-end" : "justify-start"
+          } my-2`}
         >
           <div
-            className={`max-w-3xl rounded-lg px-4 py-3 ${
+            className={`max-w-3xl rounded-2xl px-4 py-3 ${
               message.isUser
-                ? "bg-[#564673] text-white"
-                : "bg-white text-gray-800 border border-gray-200"
+                ? "bg-blue-500 text-white"
+                : "bg-[#303030] text-gray-100"
             }`}
           >
             <ReactMarkdown components={markdownComponents}>
@@ -248,30 +187,46 @@ const MessageComponent = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#eaeaea] flex flex-col">
-      <header className="bg-gradient-to-r from-[#564673] to-[#56a9c8] shadow-md py-4 px-6 sticky top-0 z-50">
-        <div className="container mx-auto">
-          <h1 className="font-semibold text-xl text-white">Bonfire</h1>
+    <div className="min-h-screen bg-[#212121] flex flex-col">
+      <header className="sticky top-0 z-50 bg-[#212121] border-b border-gray-900 shadow-md">
+        <div className="container mx-auto flex items-center justify-between px-6 py-4">
+          <div className="flex items-center gap-3 cursor-pointer transition-transform hover:scale-105">
+            <Brain className="text-white w-6 h-6" />
+            <h1 className="text-white text-2xl font-bold tracking-wide">
+              Aiva
+            </h1>
+          </div>
         </div>
       </header>
 
       <main className="flex-1 container mx-auto p-4 pb-24 overflow-y-auto">
-        <div className="max-w-xl mx-auto">
+        <div className="max-w-3xl mx-auto">
           <div className="space-y-4">
+            {messages.length === 0 && (
+              <div className="flex flex-col items-center justify-center h-[60vh] text-center">
+                <h2 className="text-2xl font-bold text-gray-300 mb-2">
+                  Welcome to Aiva
+                </h2>
+                <p className="text-gray-400 max-w-md">
+                  Ask me anything and I&apos;ll do my best to help you out.
+                </p>
+              </div>
+            )}
             {messages.map((message) => (
               <ChatMessage key={message.id} message={message} />
             ))}
+            {/* For the loading indicator, update to match your theme: */}
             {isLoading && (
               <div className="flex justify-start">
-                <div className="max-w-xs rounded-lg px-4 py-3 bg-white text-gray-800 border border-gray-200">
+                <div className="max-w-xs rounded-lg px-4 py-3 bg-[#303030] border border-gray-700">
                   <div className="flex space-x-2 mt-2">
                     <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce"></div>
                     <div
-                      className="w-2 h-2 rounded-full bg-gray-400 animate-bounce"
+                      className="w-2 h-2 rounded-full bg-gray-500 animate-bounce"
                       style={{ animationDelay: "0.2s" }}
                     ></div>
                     <div
-                      className="w-2 h-2 rounded-full bg-gray-400 animate-bounce"
+                      className="w-2 h-2 rounded-full bg-gray-600 animate-bounce"
                       style={{ animationDelay: "0.4s" }}
                     ></div>
                   </div>
@@ -283,27 +238,27 @@ const MessageComponent = () => {
         </div>
       </main>
 
-      <div className="fixed bottom-0 left-0 right-0 bg-transparent px-4 pb-4 flex justify-center">
-        <div className="w-full max-w-xl">
-          <div className="bg-white rounded-xl shadow-lg p-1 border border-gray-200">
+      <div className="fixed bottom-0 left-0 right-0 bg-[#212121] backdrop-blur-sm px-4 pb-6 pt-2 border-t border-gray-800">
+        <div className="w-full max-w-3xl mx-auto">
+          <div className="bg-[#303030] rounded-xl p-1 border border-gray-800">
             <div className="flex items-end">
               <textarea
                 ref={inputRef}
-                placeholder="Type your message..."
+                placeholder="Ask Aiva..."
                 value={inputMessage}
                 onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
-                className="bg-transparent border-none outline-none w-full text-sm resize-none max-h-32 p-3"
+                className="bg-transparent border-none outline-none w-full text-gray-100 placeholder-gray-400 resize-none max-h-32 p-3 focus:ring-0"
                 disabled={isLoading}
                 rows={1}
               />
               <button
                 onClick={sendMessage}
                 disabled={isLoading || !inputMessage.trim()}
-                className={`mr-2 p-3 rounded-full ${
+                className={`mr-2 mb-2 p-2 rounded-full transition-colors ${
                   isLoading || !inputMessage.trim()
-                    ? "text-gray-400"
-                    : "text-white bg-[#564673] hover:bg-[#3d3557] transition-colors"
+                    ? "text-gray-500 cursor-not-allowed"
+                    : "text-gray-300 hover:text-white hover:bg-gray-700 active:bg-gray-600"
                 }`}
               >
                 <Send className="h-5 w-5" />
@@ -312,19 +267,6 @@ const MessageComponent = () => {
           </div>
         </div>
       </div>
-
-      {fullscreenImage && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50"
-          onClick={() => setFullscreenImage(null)}
-        >
-          <img
-            src={fullscreenImage}
-            alt="Fullscreen"
-            className="max-w-[90%] max-h-[90%] rounded-lg shadow-lg"
-          />
-        </div>
-      )}
     </div>
   );
 };
