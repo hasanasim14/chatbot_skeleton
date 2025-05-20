@@ -153,7 +153,7 @@ const MessageComponent = () => {
           throw new Error(`API responded with status: ${res.status}`);
 
         const data = await res.json();
-        setSessionId(data?.data?.session_id || "");
+        setSessionId(data?.data?.sessionID || "");
 
         const assistantMessage = {
           id: Date.now().toString(),
